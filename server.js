@@ -14,13 +14,22 @@ app.post('/api/claude', async (req, res) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'anthropic-api-key': process.env.REACT_APP_ANTHROPIC_API_KEY,
+        'x-api-key': process.env.REACT_APP_ANTHROPIC_API_KEY,
         'anthropic-version': '2023-06-01'
       },
-      body: JSON.stringify(req.body)
+      body: JSON.stringify({
+        model: "claude-3-opus-20240229",
+        max_tokens: 4096,
+        messages: req.body.messages
+      })
     });
     
     const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.error?.message || `HTTP error! status: ${response.status}`);
+    }
+    
     res.json(data);
   } catch (error) {
     console.error('Server error:', error);

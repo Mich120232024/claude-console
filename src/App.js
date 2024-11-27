@@ -5,14 +5,15 @@ function App() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const sendMessage = async () => {
     if (!input.trim()) return;
     
     setIsLoading(true);
+    setError('');
     const newUserMessage = { role: 'user', content: input };
-    setMessages(prev => [...prev, newUserMessage]);
-
+    
     try {
       const response = await fetch('http://localhost:3001/api/claude', {
         method: 'POST',
@@ -20,23 +21,25 @@ function App() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          model: "claude-3-opus-20240229",
-          max_tokens: 4096,
           messages: [...messages, newUserMessage]
         })
       });
 
       const data = await response.json();
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: data.content[0].text
-      }]);
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to get response');
+      }
+
+      setMessages(prev => [
+        ...prev, 
+        newUserMessage,
+        { role: 'assistant', content: data.content[0].text }
+      ]);
+      
     } catch (error) {
       console.error('Error:', error);
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: "Error: " + error.message
-      }]);
+      setError(error.message);
     } finally {
       setIsLoading(false);
       setInput('');
@@ -57,6 +60,12 @@ function App() {
           </div>
         ))}
       </div>
+
+      {error && (
+        <div className="error-message">
+          {error}
+        </div>
+      )}
 
       <div className="input-container">
         <div className="input-group">
