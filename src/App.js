@@ -20,7 +20,7 @@ const App = () => {
   const handleFileUpload = (event) => {
     const uploadedFiles = Array.from(event.target.files);
     setFiles(prev => [...prev, ...uploadedFiles]);
-    setError(''); // Clear any previous errors
+    setError('');
   };
 
   const removeFile = (fileName) => {
@@ -34,12 +34,11 @@ const App = () => {
     }
 
     setIsLoading(true);
-    setError(''); // Clear any previous errors
+    setError('');
     const newUserMessage = { role: 'user', content: input };
     setMessages(prev => [...prev, newUserMessage]);
 
     try {
-      // Prepare files if any
       const fileContents = await Promise.all(files.map(async (file) => {
         const content = await file.text();
         return {
@@ -83,10 +82,6 @@ const App = () => {
     } catch (error) {
       console.error('Error:', error);
       setError(error.message || 'An error occurred while processing your request');
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: 'Sorry, there was an error processing your request. Please check your API key and try again.'
-      }]);
     } finally {
       setIsLoading(false);
       setInput('');
@@ -98,54 +93,53 @@ const App = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
-      <header className="bg-white shadow-md p-4 border-b border-gray-200">
-        <h1 className="text-2xl font-bold text-gray-800">Claude Console</h1>
+    <div className="flex flex-col h-screen">
+      <header className="bg-white shadow-sm border-b border-gray-200 p-4">
+        <h1 className="text-xl font-semibold text-gray-800">Claude Console</h1>
       </header>
 
-      <main className="flex-1 overflow-hidden flex flex-col p-4 max-w-6xl mx-auto w-full">
-        <div className="flex-1 overflow-y-auto mb-4 space-y-4 px-2">
+      <main className="flex-1 overflow-hidden flex flex-col">
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {messages.map((message, index) => (
             <div
               key={index}
-              className={`p-4 rounded-lg shadow-sm ${
+              className={`p-4 rounded-lg ${
                 message.role === 'user' 
-                  ? 'bg-blue-50 border border-blue-100 ml-auto max-w-3xl' 
-                  : 'bg-white border border-gray-200 mr-auto max-w-3xl'
+                  ? 'bg-blue-50 ml-16' 
+                  : 'bg-white border border-gray-200'
               }`}
             >
-              <div className="font-semibold mb-2 text-gray-700">
+              <div className="text-sm font-medium mb-1 text-gray-700">
                 {message.role === 'user' ? 'You' : 'Claude'}
               </div>
-              <div className="whitespace-pre-wrap text-gray-800">{message.content}</div>
+              <div className="text-gray-800 whitespace-pre-wrap">
+                {message.content}
+              </div>
             </div>
           ))}
           <div ref={messagesEndRef} />
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
-          {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-600">
-              {error}
-            </div>
-          )}
-          
+        {error && (
+          <div className="mx-4 mb-4 p-3 bg-red-50 border border-red-200 rounded-md text-red-600 text-sm">
+            {error}
+          </div>
+        )}
+
+        <div className="border-t border-gray-200 p-4">
           {files.length > 0 && (
-            <div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded">
-              <div className="text-sm font-medium text-gray-700 mb-2">Attached Files:</div>
-              <div className="space-y-2">
-                {files.map(file => (
-                  <div key={file.name} className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">{file.name}</span>
-                    <button
-                      onClick={() => removeFile(file.name)}
-                      className="text-red-500 hover:text-red-700 font-medium"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                ))}
-              </div>
+            <div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-md">
+              {files.map(file => (
+                <div key={file.name} className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600">{file.name}</span>
+                  <button
+                    onClick={() => removeFile(file.name)}
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
             </div>
           )}
 
@@ -159,7 +153,7 @@ const App = () => {
             />
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 border border-gray-300 transition-colors font-medium"
+              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 border border-gray-300"
             >
               Attach Files
             </button>
@@ -174,7 +168,7 @@ const App = () => {
             <button
               onClick={sendMessage}
               disabled={isLoading}
-              className={`px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors font-medium ${
+              className={`px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 ${
                 isLoading ? 'opacity-50 cursor-not-allowed' : ''
               }`}
             >
