@@ -1,17 +1,17 @@
+// src/App.js
 import React, { useState, useRef } from 'react';
+import './App.css';
 
-const App = () => {
+function App() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [files, setFiles] = useState([]);
   const fileInputRef = useRef(null);
-  const [error, setError] = useState('');
 
   const handleFileUpload = (event) => {
     const uploadedFiles = Array.from(event.target.files);
     setFiles(prev => [...prev, ...uploadedFiles]);
-    setError('');
   };
 
   const removeFile = (fileName) => {
@@ -19,26 +19,19 @@ const App = () => {
   };
 
   const sendMessage = async () => {
-    if (!input.trim() && files.length === 0) {
-      setError('Please enter a message or attach a file');
-      return;
-    }
+    if (!input.trim() && files.length === 0) return;
 
     setIsLoading(true);
-    setError('');
     const newUserMessage = { role: 'user', content: input };
     setMessages(prev => [...prev, newUserMessage]);
 
     try {
+      console.log('Sending request with API key:', process.env.REACT_APP_ANTHROPIC_API_KEY?.substring(0, 10) + '...');
+      
       const fileContents = await Promise.all(files.map(async (file) => {
         const content = await file.text();
         return { name: file.name, content: content };
       }));
-
-      // Log the API key for debugging (first few characters)
-      const apiKey = process.env.REACT_APP_ANTHROPIC_API_KEY;
-      console.log('API Key exists:', !!apiKey);
-      console.log('API Key starts with:', apiKey ? apiKey.substring(0, 10) + '...' : 'not found');
 
       const response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
@@ -58,15 +51,14 @@ const App = () => {
         })
       });
 
+      console.log('Response status:', response.status);
+      const data = await response.json();
+      console.log('Response data:', data);
+
       if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
-        throw new Error(
-          errorData?.error?.message || 
-          `API request failed with status ${response.status}`
-        );
+        throw new Error(data.error?.message || 'Failed to get response from Claude');
       }
 
-      const data = await response.json();
       setMessages(prev => [...prev, {
         role: 'assistant',
         content: data.content[0].text
@@ -74,7 +66,10 @@ const App = () => {
 
     } catch (error) {
       console.error('Error details:', error);
-      setError(error.message || 'An error occurred while sending the message');
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: "I apologize, but I encountered an error. Please try again or check the console for details."
+      }]);
     } finally {
       setIsLoading(false);
       setInput('');
@@ -87,26 +82,22 @@ const App = () => {
 
   return (
     <div>
-      <h1>Claude Console</h1>
-      
-      <div className="message-container">
+      <header>
+        <h1>Claude Console</h1>
+      </header>
+
+      <div className="chat-container">
         {messages.map((message, index) => (
           <div key={index} className={`message ${message.role}`}>
-            <div className="role">{message.role === 'user' ? 'You' : 'Claude'}</div>
-            <div className="content">{message.content}</div>
+            <div className="message-role">{message.role === 'user' ? 'You' : 'Claude'}</div>
+            <div className="message-content">{message.content}</div>
           </div>
         ))}
       </div>
 
-      {error && (
-        <div className="error-message">
-          {error}
-        </div>
-      )}
-
       <div className="input-container">
         {files.length > 0 && (
-          <div className="files-list">
+          <div className="file-list">
             {files.map(file => (
               <div key={file.name} className="file-item">
                 <span>{file.name}</span>
@@ -116,7 +107,7 @@ const App = () => {
           </div>
         )}
 
-        <div className="input-row">
+        <div className="input-group">
           <input
             type="file"
             ref={fileInputRef}
@@ -141,6 +132,6 @@ const App = () => {
       </div>
     </div>
   );
-};
+}
 
 export default App;

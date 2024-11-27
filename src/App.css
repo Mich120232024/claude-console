@@ -1,38 +1,113 @@
-.App {
-  text-align: center;
+/* src/App.css */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, sans-serif;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+header {
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+header h1 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 500;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+.chat-container {
+  padding: 1rem;
+  min-height: calc(100vh - 180px);
+  background-color: #fff;
+}
+
+.message {
+  margin-bottom: 1rem;
+  max-width: 80%;
+}
+
+.message.user {
+  margin-left: auto;
+  background-color: #f0f9ff;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+}
+
+.message.assistant {
+  margin-right: auto;
+  background-color: #fff;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+}
+
+.message-role {
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+  color: #4b5563;
+}
+
+.message-content {
+  white-space: pre-wrap;
+}
+
+.input-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1rem;
+  background-color: #fff;
+  border-top: 1px solid #e5e7eb;
+}
+
+.file-list {
+  margin-bottom: 0.5rem;
+}
+
+.file-item {
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
+  padding: 0.25rem 0;
+}
+
+.file-item button {
+  color: #dc2626;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.input-group {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.input-group input[type="text"] {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.25rem;
+}
+
+.input-group button {
+  padding: 0.5rem 1rem;
+  background-color: #3b82f6;
   color: white;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
 }
 
-.App-link {
-  color: #61dafb;
+.input-group button:first-child {
+  background-color: #f3f4f6;
+  color: #374151;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.input-group button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
