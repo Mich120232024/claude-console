@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import './App.css';
 
 function App() {
@@ -6,34 +6,18 @@ function App() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Debug log on component mount
-  useEffect(() => {
-    console.log('Environment variables:', {
-      REACT_APP_ANTHROPIC_API_KEY: process.env.REACT_APP_ANTHROPIC_API_KEY?.slice(0, 10) + '...',
-      NODE_ENV: process.env.NODE_ENV
-    });
-  }, []);
-
   const sendMessage = async () => {
     if (!input.trim()) return;
-
-    const apiKey = process.env.REACT_APP_ANTHROPIC_API_KEY;
-    if (!apiKey) {
-      alert('API key not found. Please check your .env file.');
-      return;
-    }
-
+    
     setIsLoading(true);
     const newUserMessage = { role: 'user', content: input };
     setMessages(prev => [...prev, newUserMessage]);
 
     try {
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
+      const response = await fetch('http://localhost:3001/api/claude', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'anthropic-api-key': apiKey,
-          'anthropic-version': '2023-06-01'
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           model: "claude-3-opus-20240229",
@@ -42,17 +26,11 @@ function App() {
         })
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error?.message || `HTTP error! status: ${response.status}`);
-      }
-
       const data = await response.json();
       setMessages(prev => [...prev, {
         role: 'assistant',
         content: data.content[0].text
       }]);
-
     } catch (error) {
       console.error('Error:', error);
       setMessages(prev => [...prev, {
@@ -69,9 +47,6 @@ function App() {
     <div>
       <header>
         <h1>Claude Console</h1>
-        <div style={{ fontSize: '12px', color: '#666' }}>
-          API Key Status: {process.env.REACT_APP_ANTHROPIC_API_KEY ? 'Present' : 'Missing'}
-        </div>
       </header>
 
       <div className="chat-container">
@@ -92,11 +67,7 @@ function App() {
             onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
             placeholder="Type your message..."
           />
-          <button 
-            onClick={sendMessage} 
-            disabled={isLoading}
-            className={isLoading ? 'loading' : ''}
-          >
+          <button onClick={sendMessage} disabled={isLoading}>
             {isLoading ? 'Sending...' : 'Send'}
           </button>
         </div>
