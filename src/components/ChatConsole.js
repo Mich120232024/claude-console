@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import './App.css';
 
 function ChatConsole() {
   const [messages, setMessages] = useState([]);
@@ -8,8 +9,6 @@ function ChatConsole() {
   const [theme, setTheme] = useState('light');
   const [chats, setChats] = useState([]);
   const [activeChat, setActiveChat] = useState(null);
-  
-  const { chatId } = useParams();
   const navigate = useNavigate();
 
   const startNewChat = () => {
@@ -26,18 +25,21 @@ function ChatConsole() {
 
   const sendMessage = async () => {
     if (!input.trim()) return;
-    
+
     setIsLoading(true);
     const newUserMessage = { role: 'user', content: input };
     setMessages(prev => [...prev, newUserMessage]);
-    
+
     try {
-      const response = await fetch('http://localhost:3001/api/claude', {
+      const response = await fetch('/api/claude', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
+          apiKey: process.env.REACT_APP_ANTHROPIC_API_KEY,
+          model: "claude-3-opus-20240229",
+          max_tokens: 4096,
           messages: [...messages, newUserMessage]
         })
       });
@@ -47,14 +49,14 @@ function ChatConsole() {
       }
 
       const data = await response.json();
-      
+
       const assistantMessage = {
         role: 'assistant',
         content: data.content[0].text
       };
-      
+
       setMessages(prev => [...prev, assistantMessage]);
-      
+
       if (!activeChat) {
         const newChat = {
           id: Date.now(),
@@ -65,8 +67,8 @@ function ChatConsole() {
         setActiveChat(newChat);
         navigate(`/chat/${newChat.id}`);
       } else {
-        setChats(prev => prev.map(chat => 
-          chat.id === activeChat.id 
+        setChats(prev => prev.map(chat =>
+          chat.id === activeChat.id
             ? { ...chat, messages: [...messages, newUserMessage, assistantMessage] }
             : chat
         ));
@@ -166,4 +168,16 @@ function ChatConsole() {
   );
 }
 
-export default ChatConsole;
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<Navigate to="/chat" replace />} />
+        <Route path="/chat" element={<ChatConsole />} />
+        <Route path="/chat/:chatId" element={<ChatConsole />} />
+      </Routes>
+    </Router>
+  );
+}
+
+export default App;
