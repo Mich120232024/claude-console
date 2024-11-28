@@ -4,9 +4,9 @@ import React from 'react';
 
 const Dashboard = () => {
     return (
-        <div>
+        <div className="dashboard-container">
             <h1>Dashboard</h1>
-            <p>Welcome to the dashboard!</p>
+            {/* Add your dashboard content here */}
         </div>
     );
 };

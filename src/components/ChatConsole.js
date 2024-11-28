@@ -95,6 +95,10 @@ const ChatConsole = ({
     }
   };
 
+  const handleSendMessage = (message) => {
+    setLocalMessages([...messages, { user: 'You', content: message }]);
+  };
+
   return (
     <div className={`chat-console ${theme}`}>
       {/* Sidebar */}
@@ -166,6 +170,12 @@ const ChatConsole = ({
               placeholder="Type your message here..."
               disabled={isLoading}
             />
+            <textarea placeholder="Type a message..." onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                handleSendMessage(e.target.value);
+                e.target.value = '';
+              }
+            }} />
           </div>
         </div>
       </main>
