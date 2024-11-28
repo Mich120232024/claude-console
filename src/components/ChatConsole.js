@@ -175,10 +175,3 @@ const ChatConsole = ({
 export default ChatConsole;
 
 // [package.json](package.json)
-{
-  "dependencies": {
-    // ...
-    "http-proxy-middleware": "^3.0.3",
-    // ...
-  }
-}
