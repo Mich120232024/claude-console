@@ -15,20 +15,6 @@ app.post("/api/claude", async (req, res) => {
       return res.status(400).json({ error: "Invalid messages format" });
     }
 
-    // Construct the prompt from messages
-    let prompt = "";
-    for (const message of messages) {
-      if (message.role === "user") {
-        prompt += `\n\nHuman: ${message.content}`;
-      } else if (message.role === "assistant") {
-        prompt += `\n\nAssistant: ${message.content}`;
-      }
-    }
-    prompt += `\n\nAssistant:`;
-
-    console.log("Constructed prompt:", prompt);
-
-    // Update server.js API endpoint
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
@@ -44,16 +30,12 @@ app.post("/api/claude", async (req, res) => {
     });
 
     const data = await response.json();
-    console.log("Claude response:", data);
-
     if (!response.ok) {
-      console.error("Error from Claude API:", data);
       throw new Error(data.error || `HTTP error! status: ${response.status}`);
     }
 
     res.json(data);
   } catch (error) {
-    console.error("Server error:", error);
     res.status(500).json({ error: error.message });
   }
 });

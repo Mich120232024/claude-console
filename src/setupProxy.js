@@ -5,8 +5,18 @@ module.exports = function (app) {
   app.use(
     '/api/claude',
     createProxyMiddleware({
-      target: 'http://localhost:3001', // Replace with your backend server's port if different
+      target: 'https://api.anthropic.com',
       changeOrigin: true,
+      pathRewrite: {
+        '^/api/claude': '/v1/messages',
+      },
+      onProxyReq: (proxyReq, req, res) => {
+        if (req.body) {
+          const bodyData = JSON.stringify(req.body);
+          proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+          proxyReq.write(bodyData);
+        }
+      },
     })
   );
 };

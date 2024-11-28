@@ -173,5 +173,3 @@ const ChatConsole = ({
 };
 
 export default ChatConsole;
-
-// [package.json](package.json)
