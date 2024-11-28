@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import './App.css';
+import { useParams, useNavigate } from 'react-router-dom';
 
 function ChatConsole() {
   const [messages, setMessages] = useState([]);
@@ -9,6 +8,9 @@ function ChatConsole() {
   const [theme, setTheme] = useState('light');
   const [chats, setChats] = useState([]);
   const [activeChat, setActiveChat] = useState(null);
+  
+  const { chatId } = useParams();
+  const navigate = useNavigate();
 
   const startNewChat = () => {
     const newChat = {
@@ -19,6 +21,7 @@ function ChatConsole() {
     setChats(prev => [newChat, ...prev]);
     setActiveChat(newChat);
     setMessages([]);
+    navigate(`/chat/${newChat.id}`);
   };
 
   const sendMessage = async () => {
@@ -52,7 +55,6 @@ function ChatConsole() {
       
       setMessages(prev => [...prev, assistantMessage]);
       
-      // Update chats
       if (!activeChat) {
         const newChat = {
           id: Date.now(),
@@ -61,6 +63,7 @@ function ChatConsole() {
         };
         setChats(prev => [newChat, ...prev]);
         setActiveChat(newChat);
+        navigate(`/chat/${newChat.id}`);
       } else {
         setChats(prev => prev.map(chat => 
           chat.id === activeChat.id 
@@ -100,6 +103,7 @@ function ChatConsole() {
                   onClick={() => {
                     setActiveChat(chat);
                     setMessages(chat.messages || []);
+                    navigate(`/chat/${chat.id}`);
                   }}
                 >
                   {chat.title}
@@ -162,16 +166,4 @@ function ChatConsole() {
   );
 }
 
-function App() {
-  return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Navigate to="/chat" replace />} />
-        <Route path="/chat" element={<ChatConsole />} />
-        <Route path="/chat/:chatId" element={<ChatConsole />} />
-      </Routes>
-    </Router>
-  );
-}
-
-export default App;
+export default ChatConsole;
