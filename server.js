@@ -3,7 +3,9 @@ const cors = require("cors");
 require("dotenv").config();
 
 const app = express();
-app.use(cors());
+const port = 3001; // Ensure this matches the port in setupProxy.js
+
+app.use(cors()); // Enable CORS
 app.use(express.json());
 
 app.post("/api/claude", async (req, res) => {
@@ -56,5 +58,6 @@ app.post("/api/claude", async (req, res) => {
   }
 });
 
-const PORT = 3001;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+});

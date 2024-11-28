@@ -1,7 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const ChatConsole = ({ chats, activeChat, setActiveChat, setMessages: setGlobalMessages }) => {
+const ChatConsole = ({
+  chats = [],
+  activeChat = null,
+  setActiveChat,
+  setMessages: setGlobalMessages,
+}) => {
   const [input, setInput] = useState('');
   const [messages, setLocalMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -13,6 +18,8 @@ const ChatConsole = ({ chats, activeChat, setActiveChat, setMessages: setGlobalM
   useEffect(() => {
     if (activeChat?.messages) {
       setLocalMessages(activeChat.messages);
+    } else {
+      setLocalMessages([]);
     }
   }, [activeChat]);
 
@@ -24,7 +31,7 @@ const ChatConsole = ({ chats, activeChat, setActiveChat, setMessages: setGlobalM
     const newChat = {
       id: Date.now(),
       title: 'New Chat',
-      messages: []
+      messages: [],
     };
     setActiveChat(newChat);
     setLocalMessages([]);
@@ -36,7 +43,8 @@ const ChatConsole = ({ chats, activeChat, setActiveChat, setMessages: setGlobalM
     if (!input.trim()) return;
 
     const userMessage = { role: 'user', content: input };
-    setLocalMessages(prev => [...prev, userMessage]);
+    const updatedMessages = [...(messages || []), userMessage];
+    setLocalMessages(updatedMessages);
     setInput('');
     setIsLoading(true);
     setError(null);
@@ -47,9 +55,7 @@ const ChatConsole = ({ chats, activeChat, setActiveChat, setMessages: setGlobalM
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          messages: [...messages, userMessage]
-        })
+        body: JSON.stringify({ messages: updatedMessages }),
       });
 
       if (!response.ok) {
@@ -59,18 +65,18 @@ const ChatConsole = ({ chats, activeChat, setActiveChat, setMessages: setGlobalM
       const data = await response.json();
       const assistantMessage = {
         role: 'assistant',
-        content: data.content || data.completion
+        content: data.content || data.completion,
       };
 
-      const updatedMessages = [...messages, userMessage, assistantMessage];
-      setLocalMessages(updatedMessages);
-      setGlobalMessages(updatedMessages);
+      const finalMessages = [...updatedMessages, assistantMessage];
+      setLocalMessages(finalMessages);
+      setGlobalMessages(finalMessages);
 
       if (activeChat) {
         setActiveChat({
           ...activeChat,
-          messages: updatedMessages,
-          title: activeChat.title || userMessage.content.slice(0, 30)
+          messages: finalMessages,
+          title: activeChat.title || userMessage.content.slice(0, 30),
         });
       }
     } catch (err) {
@@ -90,6 +96,7 @@ const ChatConsole = ({ chats, activeChat, setActiveChat, setMessages: setGlobalM
 
   return (
     <div className={`chat-console ${theme}`}>
+      {/* Sidebar */}
       <div className="sidebar">
         <div className="sidebar-header">
           <button className="new-chat-button" onClick={startNewChat}>
@@ -97,7 +104,7 @@ const ChatConsole = ({ chats, activeChat, setActiveChat, setMessages: setGlobalM
           </button>
           <button
             className="theme-toggle"
-            onClick={() => setTheme(t => t === 'light' ? 'dark' : 'light')}
+            onClick={() => setTheme(t => (t === 'light' ? 'dark' : 'light'))}
             aria-label="Toggle theme"
           >
             {theme === 'dark' ? '☀️' : '🌙'}
@@ -107,7 +114,7 @@ const ChatConsole = ({ chats, activeChat, setActiveChat, setMessages: setGlobalM
           <div className="recent-chats">
             <h2>Recent</h2>
             <div className="chat-list">
-              {chats.map(chat => (
+              {chats.map((chat) => (
                 <div
                   key={chat.id}
                   className={`chat-item ${activeChat?.id === chat.id ? 'active' : ''}`}
@@ -125,16 +132,15 @@ const ChatConsole = ({ chats, activeChat, setActiveChat, setMessages: setGlobalM
         </div>
       </div>
 
+      {/* Main Content */}
       <main className="main-content">
         <div className="chat-container">
-          {messages.map((message, index) => (
+          {(messages || []).map((message, index) => (
             <div key={index} className={`message ${message.role}`}>
               <div className="message-role">
                 {message.role === 'user' ? 'You' : 'Claude'}
               </div>
-              <div className="message-content">
-                {message.content}
-              </div>
+              <div className="message-content">{message.content}</div>
             </div>
           ))}
           {isLoading && (
@@ -144,13 +150,12 @@ const ChatConsole = ({ chats, activeChat, setActiveChat, setMessages: setGlobalM
             </div>
           )}
           {error && (
-            <div className="error-message">
-              Error: {error}
-            </div>
+            <div className="error-message">Error: {error}</div>
           )}
           <div ref={messagesEndRef} />
         </div>
 
+        {/* Input Area */}
         <div className="input-container">
           <div className="input-group">
             <textarea
@@ -168,3 +173,12 @@ const ChatConsole = ({ chats, activeChat, setActiveChat, setMessages: setGlobalM
 };
 
 export default ChatConsole;
+
+// [package.json](package.json)
+{
+  "dependencies": {
+    // ...
+    "http-proxy-middleware": "^3.0.3",
+    // ...
+  }
+}
