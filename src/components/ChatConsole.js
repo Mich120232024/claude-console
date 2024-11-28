@@ -34,7 +34,11 @@ const ChatConsole = ({
       title: 'New Chat',
       messages: [],
     };
-    setActiveChat(newChat);
+    if (typeof setActiveChat === 'function') {
+      setActiveChat(newChat);
+    } else {
+      console.error('setActiveChat is not a function');
+    }
     setLocalMessages([]);
     setGlobalMessages([]);
     navigate(`/chat/${newChat.id}`);
