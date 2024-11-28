@@ -1,29 +1,30 @@
-const express = require("express");
-const cors = require("cors");
-require("dotenv").config();
+const express = require('express');
+const cors = require('cors');
+const fetch = require('node-fetch');
+require('dotenv').config();
 
 const app = express();
-const port = 3001; // Ensure this matches the port in setupProxy.js
+const port = 3001;
 
-app.use(cors()); // Enable CORS
+app.use(cors());
 app.use(express.json());
 
-app.post("/api/claude", async (req, res) => {
+app.post('/api/claude', async (req, res) => {
   try {
-    const messages = req.body.messages;
+    const { messages } = req.body;
     if (!messages || !Array.isArray(messages)) {
-      return res.status(400).json({ error: "Invalid messages format" });
+      return res.status(400).json({ error: 'Invalid messages format' });
     }
 
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        "X-API-Key": process.env.ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
+        'Content-Type': 'application/json',
+        'X-API-Key': process.env.ANTHROPIC_API_KEY, // Use the actual API key
+        'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: "claude-3-opus-20240229",
+        model: 'claude-3-sonnet-20240229', // Updated model
         max_tokens: 4096,
         messages: messages,
       }),
@@ -36,6 +37,7 @@ app.post("/api/claude", async (req, res) => {
 
     res.json(data);
   } catch (error) {
+    console.error('Error:', error);
     res.status(500).json({ error: error.message });
   }
 });
