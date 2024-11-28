@@ -1,43 +1,6 @@
+<<<<<<< Tabnine <<<<<<<
 import React, { useState, useEffect } from 'react';
 import './App.css';
-
-const Sidebar = ({ chats, onChatSelect, activeChat }) => (
-  <div className="sidebar">
-    <div className="sidebar-header">
-      <button className="new-chat-button">+ Start new chat</button>
-    </div>
-    <div className="sidebar-content">
-      <div className="recent-chats">
-        <h2>Recent</h2>
-        <div className="chat-list">
-          {chats.map(chat => (
-            <div 
-              key={chat.id} 
-              className={`chat-item ${activeChat?.id === chat.id ? 'active' : ''}`}
-              onClick={() => onChatSelect(chat)}
-            >
-              {chat.title}
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  </div>
-);
-
-const Header = ({ theme, onToggleTheme }) => (
-  <header className="main-header">
-    <h1>Claude Console</h1>
-    <div className="header-controls">
-      <button 
-        className="theme-toggle"
-        onClick={onToggleTheme}
-      >
-        {theme === 'dark' ? '☀️' : '🌙'}
-      </button>
-    </div>
-  </header>
-);
 
 function App() {
   const [messages, setMessages] = useState([]);
@@ -47,22 +10,41 @@ function App() {
   const [chats, setChats] = useState([]);
   const [activeChat, setActiveChat] = useState(null);
 
+  // Load chats from localStorage on init
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('theme', theme);
-  }, [theme]);
+    const savedChats = localStorage.getItem('chats');
+    if (savedChats) {
+      setChats(JSON.parse(savedChats));
+    }
+  }, []);
 
-  const toggleTheme = () => {
-    setTheme(current => current === 'light' ? 'dark' : 'light');
+  // Save chats to localStorage when updated
+  useEffect(() => {
+    localStorage.setItem('chats', JSON.stringify(chats));
+  }, [chats]);
+
+  const startNewChat = () => {
+    const newChat = {
+      id: Date.now(),
+      title: 'New Chat',
+      messages: []
+    };
+    setChats(prev => [newChat, ...prev]);
+    setActiveChat(newChat);
+    setMessages([]);
   };
 
   const sendMessage = async () => {
     if (!input.trim()) return;
-    
+
     setIsLoading(true);
     const newUserMessage = { role: 'user', content: input };
-    
+    setMessages(prev => [...prev, newUserMessage]); // Immediately show user message//-
+
+    // Immediately show user message//+
+    setMessages(prev => [...prev, newUserMessage]);//+
     try {
+      console.log('Sending message:', [...messages, newUserMessage]);//+
       const response = await fetch('http://localhost:3001/api/claude', {
         method: 'POST',
         headers: {
@@ -72,34 +54,72 @@ function App() {
           messages: [...messages, newUserMessage]
         })
       });
-
+//-
       const data = await response.json();
-      
+      console.log('Received response:', data);//+
+
       if (!response.ok) {
         throw new Error(data.error || 'Failed to get response');
       }
+//-
+      // Add assistant's response
+      const newAssistantMessage = { role: 'assistant', content: data.content[0].text };//-
+      const updatedMessages = [...messages, newUserMessage, newAssistantMessage];//-
+      setMessages(updatedMessages);//-
+      if (data.content && data.content[0] && data.content[0].text) {//+
+        const assistantMessage = {//+
+          role: 'assistant',//+
+          content: data.content[0].text//+
+        };//+
 
-      const newMessages = [
-        ...messages,
-        newUserMessage,
-        { role: 'assistant', content: data.content[0].text }
-      ];
-
-      setMessages(newMessages);
-
-      // Create new chat if this is the first message
-      if (messages.length === 0) {
-        const newChat = {
-          id: Date.now(),
-          title: input.slice(0, 30) + '...',
-          messages: newMessages
-        };
-        setChats(prev => [newChat, ...prev]);
-        setActiveChat(newChat);
+      // Update chat history//-
+      if (!activeChat) {//-
+        // Create new chat if none is active//-
+        const newChat = {//-
+          id: Date.now(),//-
+          title: input.slice(0, 30) + '...',//-
+          messages: updatedMessages//-
+        };//-
+        setChats(prev => [newChat, ...prev]);//-
+        setActiveChat(newChat);//-
+        setMessages(prev => [...prev, assistantMessage]);//+
+//+
+        // Update chat history//+
+        const updatedMessages = [...messages, newUserMessage, assistantMessage];//+
+//+
+        if (!activeChat) {//+
+          const newChat = {//+
+            id: Date.now(),//+
+            title: input.slice(0, 30) + '...',//+
+            messages: updatedMessages//+
+          };//+
+          setChats(prev => [newChat, ...prev]);//+
+          setActiveChat(newChat);//+
+        } else {//+
+          setChats(prev => prev.map(chat => //+
+            chat.id === activeChat.id //+
+              ? { ...chat, messages: updatedMessages }//+
+              : chat//+
+          ));//+
+        }//+
+      } else {
+        // Update existing chat//-
+        setChats(prev => prev.map(chat => //-
+          chat.id === activeChat.id //-
+            ? { ...chat, messages: updatedMessages }//-
+            : chat//-
+        ));//-
+        console.error('Invalid response format:', data);//+
+        throw new Error('Invalid response from Claude');//+
       }
-
+//-
     } catch (error) {
       console.error('Error:', error);
+      // Show error in chat//+
+      setMessages(prev => [...prev, {//+
+        role: 'assistant',//+
+        content: `Error: ${error.message}`//+
+      }]);//+
     } finally {
       setIsLoading(false);
       setInput('');
@@ -108,13 +128,44 @@ function App() {
 
   return (
     <div className="app-container">
-      <Sidebar 
-        chats={chats}
-        activeChat={activeChat}
-        onChatSelect={setActiveChat}
-      />
+      <div className="sidebar">
+        <div className="sidebar-header">
+          <button className="new-chat-button" onClick={startNewChat}>
+            + Start new chat
+          </button>
+        </div>
+        <div className="sidebar-content">
+          <div className="recent-chats">
+            <h2>Recent</h2>
+            <div className="chat-list">
+              {chats.map(chat => (
+                <div 
+                  key={chat.id} 
+                  className={`chat-item ${activeChat?.id === chat.id ? 'active' : ''}`}
+                  onClick={() => {
+                    setActiveChat(chat);
+                    setMessages(chat.messages);
+                  }}
+                >
+                  {chat.title}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
       <main className="main-content">
-        <Header theme={theme} onToggleTheme={toggleTheme} />
+        <header className="main-header">
+          <h1>Claude Console</h1>
+          <button 
+            className="theme-toggle"
+            onClick={() => setTheme(t => t === 'light' ? 'dark' : 'light')}
+          >
+            {theme === 'dark' ? '☀️' : '🌙'}
+          </button>
+        </header>
+
         <div className="chat-container">
           {messages.map((message, index) => (
             <div key={index} className={`message ${message.role}`}>
@@ -123,6 +174,7 @@ function App() {
             </div>
           ))}
         </div>
+
         <div className="input-container">
           <div className="input-group">
             <textarea
@@ -139,7 +191,7 @@ function App() {
             />
             <button 
               onClick={sendMessage} 
-              disabled={isLoading}
+              disabled={isLoading || !input.trim()}
               className="send-button"
             >
               {isLoading ? 'Sending...' : 'Send'}
@@ -152,3 +204,4 @@ function App() {
 }
 
 export default App;
+>>>>>>> Tabnine >>>>>>>// {"source":"chat"}
