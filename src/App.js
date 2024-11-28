@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import ChatConsole from './components/ChatConsole';
+import Dashboard from './components/Dashboard';
 import './App.css';
 
 const App = () => {
@@ -8,9 +9,12 @@ const App = () => {
   const [activeChat, setActiveChat] = useState(null);
 
   return (
-    <Router>
+    <div className="App">
       <Routes>
+        {/* Redirect root to /chat */}
         <Route path="/" element={<Navigate to="/chat" replace />} />
+
+        {/* Chat routes */}
         <Route
           path="/chat"
           element={
@@ -49,8 +53,14 @@ const App = () => {
             />
           }
         />
+
+        {/* Dashboard route */}
+        <Route path="/dashboard" element={<Dashboard />} />
+
+        {/* Fallback for undefined routes */}
+        <Route path="*" element={<Navigate to="/chat" replace />} />
       </Routes>
-    </Router>
+    </div>
   );
 };
 

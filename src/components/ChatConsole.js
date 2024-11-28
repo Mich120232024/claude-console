@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import PropTypes from 'prop-types';
 
 const ChatConsole = ({
   chats = [],
@@ -170,6 +171,13 @@ const ChatConsole = ({
       </main>
     </div>
   );
+};
+
+ChatConsole.propTypes = {
+  chats: PropTypes.array,
+  activeChat: PropTypes.object,
+  setActiveChat: PropTypes.func.isRequired,
+  setMessages: PropTypes.func.isRequired,
 };
 
 export default ChatConsole;
